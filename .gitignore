@@ -16,6 +16,7 @@ bin/
 CMakeLists.txt.*
 Makefile*
 .directory
+project-*/
 
 #############
 ## Windows detritus
