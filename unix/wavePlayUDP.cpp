@@ -7,7 +7,7 @@
 #include <sched.h>
 
 static void setScheduler();
-static int configureServer(int port);
+static int configureServer(int port, const char* multicastIp);
 static void dumpParams(snd_pcm_t *hWave);
 static int writeAudio(snd_pcm_t *hWaveOut, const char* data, int size, int chunkSize);
 static int audioRecovery(snd_pcm_t *hWaveOut, int err);
@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 	int audioBytesPerSample = 2;
 	snd_pcm_uframes_t audioBufferChunk = 128;
 	int audioBufferNum = 10;
+	const char *multicastIp = NULL;
 
 	for(int i = 1; (i+1) < argc; i++) {
 		if(!strcmp(argv[i], "--rate")) {
@@ -46,10 +47,13 @@ int main(int argc, char *argv[])
 		} else if(!strcmp(argv[i], "--device")) {
 			audioTarget = argv[i+1];
 			i++;
+		} else if(!strcmp(argv[i], "--multicast")) {
+			multicastIp = argv[i+1];
+			i++;
 		}
 	}
 
-	int server = configureServer(port);
+	int server = configureServer(port, multicastIp);
 	if(server == -1)
 		return 0;
 	int chunkSize = audioChannels * audioBytesPerSample;
@@ -139,7 +143,7 @@ static void setScheduler() {
 	logMessage("!!!Scheduler set to Round Robin with priority %i FAILED!!!\n", sched_param.sched_priority);
 }
 
-static int configureServer(int port) {
+static int configureServer(int port, const char* multicastIp) {
 	struct sockaddr_in sin;
 	int server = -1;
 
@@ -158,6 +162,17 @@ static int configureServer(int port) {
 		return -1;
 	}
 
+	
+	if(multicastIp) {
+		struct ip_mreq mreq;
+
+		mreq.imr_multiaddr.s_addr = inet_addr(multicastIp);
+		mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+		if (setsockopt(server, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+			logMessage("Failed to join multicast group %s\n", multicastIp);
+		}
+	}
+	
 	return server;
 }
 

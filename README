@@ -6,8 +6,8 @@ Achieved latency using a laptop client (recording) and raspberry pi server: 21ms
 
 Example of usage:
 
-Client: ./waveSendUDP --chunksize 128 --chunknum 4 --device hw:0,0 --rate 48000 --channel 2 --port 2305 192.168.1.10
-Server: ./wavePlayUDP --chunksize 128 --chunknum 10 --device default --rate 48000 --channel 2 --port 2305
+Client: ./waveSendUDP --chunksize 128 --chunknum 4 --device hw:0,0 --rate 48000 --channel 2 --port 2305 224.1.0.10
+Server: ./wavePlayUDP --chunksize 128 --chunknum 10 --device default --rate 48000 --channel 2 --port 2305 --multicast 224.1.0.10
 
 chunksize is in samples. There is <rate> samples / seconds (so here 128 samples with 48 samples/ms is 2.667ms per chunk)
 
@@ -18,5 +18,6 @@ Options:
  - rate: sampling rate
  - channel: number of channels (1 = mono, 2 = stereo)
  - port: UDP port
+ - multicast: Join multicast group, packet targeted on this multicast IP will also be received
 
-Additionally, waveSendUDP need the server's IP.
+Additionally, waveSendUDP need the server's IP or a multicast address.
